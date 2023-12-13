@@ -1,31 +1,45 @@
 import { useEffect, useState } from "react";
-import PostItem from "../components/PostItem";
+import PhotoCard from "../components/PhotoCard";
 
 export default function HomePage() {
-    const [posts, setPosts] = useState([]);
+    const [photos, setPhotos] = useState([]);
 
     useEffect(() => {
-        async function getPosts() {
+        async function getPhotos() {
             const url =
-                "https://fb-rest-race-default-rtdb.firebaseio.com/posts.json";
+                "https://firestore.googleapis.com/v1/projects/race-photo-app/databases/(default)/documents/photos";
             const response = await fetch(url);
-            const data = await response.json();
-            const postsArray = Object.keys(data).map(key => ({
-                id: key,
-                ...data[key]
-            })); // from object to array
-            setPosts(postsArray);
+            const docs = await response.json();
+            console.log(docs);
+            const photoDocs = firebaseDataMapper(docs);
+            console.log(photoDocs);
+            setPhotos(photoDocs);
         }
 
-        getPosts();
+        getPhotos();
     }, []);
+
+    function firebaseDataMapper(docs) {
+        return docs.documents.map(doc => {
+            const fields = doc.fields;
+            const object = {};
+            object.id = doc.name.split("/").pop();
+            object.createTime = doc.createTime;
+            object.updateTime = doc.updateTime;
+
+            for (const field in fields) {
+                object[field] = Object.values(fields[field])[0];
+            }
+            return object;
+        });
+    }
 
     return (
         <section className="page">
-            <h1>Posts</h1>
+            <h1>Photos</h1>
             <section className="grid">
-                {posts.map(post => (
-                    <PostItem post={post} key={post.id} />
+                {photos.map(photo => (
+                    <PhotoCard photo={photo} key={photo.id} />
                 ))}
             </section>
         </section>
