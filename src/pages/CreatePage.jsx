@@ -10,18 +10,19 @@ export default function CreatePage() {
 
     async function handleSubmit(event) {
         event.preventDefault();
-        const newPost = {
-            caption: caption,
-            image: image,
-            uid: "ZfPTVEMQKf9vhNiUh0bj"
-        };
 
-        const url =
-            "https://fb-rest-race-default-rtdb.firebaseio.com/posts.json";
+        const photoObj = {
+            fields: {
+                caption: { stringValue: caption },
+                image: { stringValue: image },
+                uid: { stringValue: "IwlCsBmACaF4HOQCKdUB" }
+            }
+        };
+        const url = `${import.meta.env.VITE_FIRESTORE_URL}/photos`;
 
         const response = await fetch(url, {
             method: "POST",
-            body: JSON.stringify(newPost)
+            body: JSON.stringify(photoObj)
         });
 
         if (response.ok) {
@@ -67,12 +68,7 @@ export default function CreatePage() {
                 </label>
                 <label>
                     Image
-                    <input
-                        type="file"
-                        className="file-input"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                    />
+                    <input type="file" className="file-input" accept="image/*" onChange={handleImageChange} />
                     <img
                         className="image-preview"
                         src={image}
