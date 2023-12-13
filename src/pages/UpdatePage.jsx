@@ -3,40 +3,35 @@ import { useParams, useNavigate } from "react-router-dom";
 import { mapFirebaseDocument } from "../helpers/FirebaseDataMapper";
 
 export default function UpdatePage() {
-    const [photo, setPhoto] = useState({});
-    const [caption, setCaption] = useState("");
-    const [image, setImage] = useState("");
+    const [photo, setPhoto] = useState({ caption: "", image: "" });
     const [errorMessage, setErrorMessage] = useState("");
     const params = useParams();
     const navigate = useNavigate();
     const url = `${import.meta.env.VITE_FIRESTORE_URL}/photos/${params.postId}`;
-    console.log(url);
 
     useEffect(() => {
         async function getPhoto() {
             const response = await fetch(url);
             const data = await response.json();
             setPhoto(mapFirebaseDocument(data));
-            setCaption(photo.caption);
-            setImage(photo.image);
         }
 
         getPhoto();
-    }, [photo.caption, photo.image, url]);
+    }, [url]);
 
     async function handleSubmit(event) {
         event.preventDefault();
-        const postToUpdate = {
+        const photoObj = {
             fields: {
-                caption: { stringValue: caption },
-                image: { stringValue: image },
+                caption: { stringValue: photo.caption },
+                image: { stringValue: photo.image },
                 uid: { stringValue: photo.uid }
             }
         };
 
         const response = await fetch(url, {
             method: "PATCH",
-            body: JSON.stringify(postToUpdate)
+            body: JSON.stringify(photoObj)
         });
 
         if (response.ok) {
@@ -72,7 +67,9 @@ export default function UpdatePage() {
             // image file size must be below 0,5MB
             const reader = new FileReader();
             reader.onload = event => {
-                setImage(event.target.result);
+                setPhoto(prev => {
+                    return { ...prev, image: event.target.result };
+                });
             };
             reader.readAsDataURL(file);
             setErrorMessage(""); // reset errorMessage state
@@ -91,15 +88,19 @@ export default function UpdatePage() {
                     <input
                         type="text"
                         placeholder="Type a caption"
-                        value={caption}
+                        value={photo.caption}
                         required
-                        onChange={event => setCaption(event.target.value)}
+                        onChange={event =>
+                            setPhoto(prev => {
+                                return { ...prev, caption: event.target.value };
+                            })
+                        }
                     />
                 </label>
                 <label>
                     Image
                     <input type="file" className="file-input" accept="image/*" onChange={handleImageChange} />
-                    <img className="image-preview" src={image} alt="Choose" />
+                    <img className="image-preview" src={photo.image} alt="Choose" />
                 </label>
                 <p className="text-error">{errorMessage}</p>
                 <button>Save</button>
