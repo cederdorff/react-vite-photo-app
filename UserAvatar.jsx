@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { mapFirebaseDocument } from "../helpers/FirebaseDataMapper";
 
 export default function UserAvatar({ uid }) {
     const [user, setUser] = useState({});
@@ -9,7 +8,13 @@ export default function UserAvatar({ uid }) {
             const response = await fetch(url);
             const userDoc = await response.json();
 
-            setUser(mapFirebaseDocument(userDoc));
+            const userObject = {
+                name: userDoc.fields.name.stringValue,
+                title: userDoc.fields.title.stringValue,
+                image: userDoc.fields.image.stringValue
+            };
+
+            setUser(userObject);
         }
         getUser();
     }, [uid]);

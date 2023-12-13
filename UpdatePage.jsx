@@ -1,41 +1,39 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { mapFirebaseDocument } from "../helpers/FirebaseDataMapper";
 
 export default function UpdatePage() {
-    const [photo, setPhoto] = useState({});
+    const [post, setPost] = useState({});
     const [caption, setCaption] = useState("");
     const [image, setImage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const params = useParams();
     const navigate = useNavigate();
-    const url = `${import.meta.env.VITE_FIRESTORE_URL}/photos/${params.postId}`;
-    console.log(url);
+    const url = `
+    https://fb-rest-race-default-rtdb.firebaseio.com/posts/${params.postId}.json
+    `;
 
     useEffect(() => {
-        async function getPhoto() {
+        async function getPost() {
             const response = await fetch(url);
             const data = await response.json();
-            setPhoto(mapFirebaseDocument(data));
-            setCaption(photo.caption);
-            setImage(photo.image);
+            setPost(data);
+            setCaption(post.caption);
+            setImage(post.image);
         }
 
-        getPhoto();
-    }, [photo.caption, photo.image, url]);
+        getPost();
+    }, [post.caption, post.image, url]);
 
     async function handleSubmit(event) {
         event.preventDefault();
         const postToUpdate = {
-            fields: {
-                caption: { stringValue: caption },
-                image: { stringValue: image },
-                uid: { stringValue: photo.uid }
-            }
+            caption: caption,
+            image: image,
+            uid: post.uid
         };
 
         const response = await fetch(url, {
-            method: "PATCH",
+            method: "PUT",
             body: JSON.stringify(postToUpdate)
         });
 
@@ -98,7 +96,12 @@ export default function UpdatePage() {
                 </label>
                 <label>
                     Image
-                    <input type="file" className="file-input" accept="image/*" onChange={handleImageChange} />
+                    <input
+                        type="file"
+                        className="file-input"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                    />
                     <img className="image-preview" src={image} alt="Choose" />
                 </label>
                 <p className="text-error">{errorMessage}</p>
